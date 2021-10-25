@@ -1,8 +1,8 @@
 package com.example.service;
 
 import com.example.entity.Student;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+
+import java.util.List;
 
 /**
  * @author chenzufeng
@@ -22,7 +22,7 @@ public interface StudentService {
      * @param student Body中的信息
      * @return Student
      */
-    Student updateStudentAllInfoById(@RequestBody Student student);
+    Student updateStudentAllInfoById(Student student);
 
     /**
      * 增
@@ -30,5 +30,11 @@ public interface StudentService {
      * @param student Student
      * @return Integer id
      */
-    Integer createStudent(@RequestBody Student student);
+    Integer createStudent(Student student);
+
+    /**
+     * 查询所有学生信息
+     * @return 学生信息列表
+     */
+    List<Student> queryAllStudent();
 }

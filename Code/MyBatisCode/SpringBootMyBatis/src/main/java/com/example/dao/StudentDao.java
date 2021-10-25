@@ -3,6 +3,8 @@ package com.example.dao;
 import com.example.entity.Student;
 import org.apache.ibatis.annotations.Mapper;
 
+import java.util.List;
+
 /**
  * @author chenzufeng
  * @Mapper 扫描StudentDao接口到容器
@@ -47,4 +49,10 @@ public interface StudentDao {
      * @param student Student
      */
     void updateByPrimaryKey(Student student);
+
+    /**
+     * 查询所有学生信息
+     * @return 学生信息列表
+     */
+    List<Student> queryAllStudent();
 }

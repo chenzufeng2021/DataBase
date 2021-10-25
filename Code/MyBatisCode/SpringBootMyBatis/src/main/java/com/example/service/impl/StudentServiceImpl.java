@@ -6,6 +6,8 @@ import com.example.service.StudentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @author chenzufeng
  * @date 2021/10/17
@@ -37,5 +39,10 @@ public class StudentServiceImpl implements StudentService {
     public Integer createStudent(Student student) {
         Integer id = studentDao.insertSelective(student);
         return id;
+    }
+
+    @Override
+    public List<Student> queryAllStudent() {
+        return studentDao.queryAllStudent();
     }
 }

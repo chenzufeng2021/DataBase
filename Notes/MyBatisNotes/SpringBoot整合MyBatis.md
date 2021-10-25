@@ -442,3 +442,213 @@ public class SpringBootMyBatisApplication {
 }
 ```
 
+
+
+# 引入Swagger
+
+## 引入Swagger依赖
+
+```xml
+<!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger2 -->
+<dependency>
+    <groupId>io.springfox</groupId>
+    <artifactId>springfox-swagger2</artifactId>
+    <version>2.9.2</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/io.springfox/springfox-swagger-ui -->
+<dependency>
+    <groupId>io.springfox</groupId>
+    <artifactId>springfox-swagger-ui</artifactId>
+    <version>2.9.2</version>
+</dependency>
+
+<!-- https://mvnrepository.com/artifact/com.github.xiaoymin/knife4j-spring-boot-starter -->
+<dependency>
+    <groupId>com.github.xiaoymin</groupId>
+    <artifactId>knife4j-spring-boot-starter</artifactId>
+    <version>2.0.9</version>
+</dependency>
+```
+
+## 添加Swagger配置类
+
+```java
+package com.example;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
+import org.springframework.core.env.Profiles;
+import springfox.documentation.builders.ApiInfoBuilder;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
+
+/**
+ * @author chenzufeng
+ * @date 2021/10/25
+ * @usage Swagger2Config
+ * 通过http://localhost:8080/doc.html#/home访问
+ * Swagger配置：@Configuration - 配置类；@EnableSwagger2 - 开启Swagger2的自动配置
+ */
+@Configuration
+@EnableSwagger2
+public class Swagger2Config {
+    @Bean
+    public Docket createRestApi(Environment environment) {
+
+        return new Docket(DocumentationType.SWAGGER_2)
+                .apiInfo(apiInfo())
+                .groupName("SpringBootMyBatis")
+
+                // 通过 select()方法，去配置扫描接口
+                .select()
+                // RequestHandlerSelectors 配置如何扫描接口
+                .apis(RequestHandlerSelectors.basePackage("com.example.controller"))
+                // 配置如何通过path过滤，PathSelectors.ant("/example/**")：只扫描请求以/example开头的接口
+                .paths(PathSelectors.any())
+                .build();
+    }
+
+    private ApiInfo apiInfo() {
+        return new ApiInfoBuilder()
+                .title("SpringBootMyBatis 接口文档")
+                .description("SpringBootMyBatis 接口文档")
+                .version("1.0.0.RELEASE")
+                // 使用了创建者设计模式
+                .build();
+    }
+}
+```
+
+## 添加注解
+
+### 接口上
+
+```java
+package com.example.controller;
+
+import com.example.entity.Student;
+import com.example.service.StudentService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.ApiParam;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+/**
+ * @author chenzufeng
+ * @date 2021/10/17
+ * @usage StudentController
+ */
+@Api(value = "学生信息", tags = "学生信息")
+@RestController
+@RequestMapping("/student")
+public class StudentController {
+    /**
+     * 注入业务层
+     * 如果没有在容器中注入StudentServiceImpl会报错：
+     * No beans of 'StudentService' type found.
+     */
+    @Autowired
+    private StudentService studentService;
+
+    /**
+     * 查
+     * 根据id获取学生信息
+     * @param id 主键id
+     * @return Student
+     */
+    @ApiOperation(value = "根据学生主键ID查询学生信息")
+    @GetMapping("/studentInfo")
+    public Student getStudentInfo(
+            // name为参数名称：在传参路径中显示；value对参数的说明
+            @ApiParam(name = "id", value = "主键ID", required = true)
+            @RequestParam("id") Integer id) {
+        Student student = studentService.queryStudentById(id);
+        return student;
+    }
+}
+```
+
+### 实体类上
+
+```java
+package com.example.entity;
+
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
+/**
+ * @author chenzufeng
+ * 实体类
+ */
+@ApiModel(value = "学生实体类")
+public class Student {
+    @ApiModelProperty(value = "主键")
+    private Integer id;
+
+    @ApiModelProperty(value = "姓名")
+    private String name;
+
+    @ApiModelProperty(value = "年龄")
+    private Integer age;
+
+    // Getter & Setter
+}
+```
+
+
+
+# SpringBoot集成pagehelper分页
+
+参考资料：https://blog.csdn.net/gnail_oug/article/details/80229542
+
+## 添加依赖
+
+```xml
+<!-- https://mvnrepository.com/artifact/com.github.pagehelper/pagehelper-spring-boot-starter -->
+<dependency>
+    <groupId>com.github.pagehelper</groupId>
+    <artifactId>pagehelper-spring-boot-starter</artifactId>
+    <version>1.4.0</version>
+</dependency>
+```
+
+## 配置文件
+
+```properties
+# 添加分页配置信息
+pagehelper.helperDialect=mysql
+pagehelper.reasonable=true
+pagehelper.supportMethodsArguments=true
+pagehelper.params=count=countSql
+pagehelper.page-size-zero=true
+```
+
+## 修改接口
+
+```java
+/**
+ * 查询所有学生信息（分页）
+ * @return 学生信息列表
+ */
+@ApiOperation(value = "查询所有学生信息（分页）")
+@GetMapping("/allStudentInfoPage")
+@ApiImplicitParams({
+        @ApiImplicitParam(name = "pageNo", value = "第几页", required = true, paramType = "path"),
+        @ApiImplicitParam(name = "pageSize", value = "展示多少条数据", required = true, paramType = "path")
+})
+public List<Student> getAllStudentInfoPage(
+        @RequestParam(defaultValue = "1") Integer pageNo,
+        @RequestParam(defaultValue = "2") Integer pageSize
+) {
+    PageHelper.startPage(pageNo, pageSize);
+    return studentService.queryAllStudent();
+}
+```
+

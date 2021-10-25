@@ -1,14 +1,21 @@
 package com.example.entity;
 
+import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
+
 /**
  * @author chenzufeng
  * 实体类
  */
+@ApiModel(value = "学生实体类")
 public class Student {
+    @ApiModelProperty(value = "主键")
     private Integer id;
 
+    @ApiModelProperty(value = "姓名")
     private String name;
 
+    @ApiModelProperty(value = "年龄")
     private Integer age;
 
     public Integer getId() {

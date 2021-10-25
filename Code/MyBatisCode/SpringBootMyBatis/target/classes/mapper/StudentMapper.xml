@@ -21,8 +21,14 @@
 
   <!-- sql语句片段，将公共的部分抽取出来，不用写select *影响效率 -->
   <sql id="Base_Column_List">
-    id, name, age
+    id, `name`, age
   </sql>
+
+  <select id="queryAllStudent" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_student
+  </select>
 
   <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
     select
