@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.dao.StudentDao">
+
+  <!--
+    自己组装一个结果集并返回一个结果集
+    1. 当【数据库中字段名称】与【实体类对象的属性名】不一致时，可以进行转换
+    2. 当前查询的结果没有对应一个表时，可以自定义一个结果集
+  -->
+  <resultMap id="BaseResultMap" type="com.example.entity.Student">
+    <!-- id：标识主键字段；
+          column：数据库中的字段名称（user_name）
+          property：映射对象（实体对象）的属性名称（userName）
+          jdbcType：数据库中字段类型（可省略）
+     -->
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <!-- 除了主键以外的数据库中字段名称 -->
+    <result column="name" jdbcType="VARCHAR" property="name" />
+    <result column="age" jdbcType="INTEGER" property="age" />
+  </resultMap>
+
+  <!-- sql语句片段，将公共的部分抽取出来，不用写select *影响效率 -->
+  <sql id="Base_Column_List">
+    id, name, age
+  </sql>
+
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from t_student
+    where id = #{id, jdbcType=INTEGER}
+  </select>
+
+  <!-- void deleteByPrimaryKey(Integer id); -->
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    delete from t_student
+    where id = #{id}
+  </delete>
+
+  <!-- 需要对每一个字段进行赋值
+        parameterType可以省略
+   -->
+  <insert id="insert" parameterType="com.example.entity.Student">
+    insert into t_student (id, name, age)
+    values (#{id}, #{name}, #{age})
+  </insert>
+
+  <!-- 选择性插入
+        useGeneratedKeys="true"：使用自增主键获取主键值
+        keyProperty="id"：MyBatis获取主键值后，将其封装给JavaBean实体对象的对应属性（id）
+  -->
+  <insert id="insertSelective"
+          parameterType="com.example.entity.Student"
+          useGeneratedKeys="true"
+          keyProperty="id"
+  >
+    insert into t_student
+    <!-- suffixOverrides="," 去除多余的逗号-->
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+        <!-- 使用的封装类型，规避了"id != ''"空字符串的判断 -->
+        <if test="id != null">
+          id,
+        </if>
+
+        <if test="name != null">
+          name,
+        </if>
+
+        <if test="age != null">
+          age,
+        </if>
+    </trim>
+
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id, jdbcType=INTEGER},
+      </if>
+
+      <if test="name != null">
+        #{name, jdbcType=VARCHAR},
+      </if>
+
+      <if test="age != null">
+        #{age, jdbcType=INTEGER},
+      </if>
+    </trim>
+  </insert>
+
+  <update id="updateByPrimaryKeySelective" parameterType="com.example.entity.Student">
+    update t_student
+    <set>
+      <if test="name != null">
+        name = #{name, jdbcType=VARCHAR},
+      </if>
+
+      <if test="age != null">
+        age = #{age, jdbcType=INTEGER},
+      </if>
+    </set>
+    where id = #{id, jdbcType=INTEGER}
+  </update>
+
+  <!-- void updateByPrimaryKey(Student student) -->
+  <update id="updateByPrimaryKey" parameterType="com.example.entity.Student">
+    update t_student
+    set name = #{name}, age = #{age}
+    where id = #{id}
+  </update>
+</mapper>

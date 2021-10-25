@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+                                        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+    <!-- 1.设置实体别名：便于Mapper文件中使用（而不是写全限定名） -->
+    <typeAliases>
+        <typeAlias alias="user" type="demo.User"/>
+    </typeAliases>
+
+    <!-- 2.配置mybatis运行环境 -->
+    <environments default="development">
+        <environment id="development">
+            <!-- 使用JDBC的事务管理 -->
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <!-- MySQL数据库驱动 -->
+                <property name="driver" value="com.mysql.jdbc.Driver"/>
+                <!-- 连接数据库的URL -->
+                <property name="url" value="jdbc:mysql://localhost:3306/mybatis?characterEncoding=utf8"/>
+                <property name="username" value="root"/>
+                <property name="password" value="120618"/>
+            </dataSource>
+        </environment>
+    </environments>
+
+    <!-- 3.将mapper文件加入到配置文件中 -->
+    <mappers>
+        <mapper resource="UserMapper.xml"/>
+    </mappers>
+</configuration>

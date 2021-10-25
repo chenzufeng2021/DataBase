@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+                                       http://www.springframework.org/schema/beans/spring-beans.xsd">
+
+    <!-- 创建数据源datasource -->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="com.mysql.jdbc.Driver"/>
+        <property name="url" value="jdbc:mysql://localhost:3306/mybatis"/>
+        <property name="username" value="root"/>
+        <property name="password" value="120618"/>
+    </bean>
+
+    <!-- 配置SqlSessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <!-- 引用数据源组件 -->
+        <property name="dataSource" ref="dataSource"/>
+        <!-- 设置实体类别名，方便映射文件；仅需指定实体类所在的包，避免繁琐的重复配置 -->
+        <property name="typeAliasesPackage" value="demo.entity"/>
+        <!-- 引用SQL映射文件中的配置：进行通配设置
+        <property name="mapperLocations" value="UserMapper.xml"/>-->
+        <property name="mapperLocations">
+            <list>
+                <value>classpath:demo/UserMapper.xml</value>
+            </list>
+        </property>
+
+    </bean>
+
+    <!-- 4.根据sqlSessionFactory创建DAO对象 -->
+    <bean id="mapperScannerConfigurer" class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!--注入sqlSessionFactory-->
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"/>
+        <!--扫描Dao接口所在包-->
+        <property name="basePackage" value="demo.dao"/>
+    </bean>
+</beans>
