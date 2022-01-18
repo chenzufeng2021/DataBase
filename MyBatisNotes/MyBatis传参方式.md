@@ -1,6 +1,8 @@
-# 单个参数
+# 单个属性
 
-单个参数的传参比较简单，可以是任意形式的，比如`#{a}`、`#{b}`或者`#{param1}`，**但是为了开发规范，尽量使用和入参时一样**。
+## 不使用@param参数注解
+
+单个属性的传参比较简单，可以是任意形式的，比如`#{a}`、`#{b}`或者`#{param1}`，**但是为了开发规范，尽量<font color=red>使用和入参一样</font>**。
 
 Mapper如下：
 
@@ -12,12 +14,36 @@ XML如下：
 
 ```xml
 <select id="selectByUserId" resultType="cn.cb.demo.domain.UserInfo">
-    select * from user_info 
-    where user_id=#{userId} and status=1
+    SELECT * FROM user_info 
+    WHERE user_id = #{userId} AND status = 1
 </select>
 ```
 
-# 多个参数
+注意：当查询参数为一个单一属性且没有使用注解时，xml中查询字段`#{}`内可以为任意值。
+
+## 使用@param参数注解
+
+Mapper如下：
+
+```java
+UserInfo selectByUserId(@Param("userId") String userId);
+```
+
+XML如下：
+
+```xml
+<select id="selectByUserId" resultType="cn.cb.demo.domain.UserInfo">
+    SELECT * FROM user_info 
+    WHERE user_id = #{userId} 
+    AND status = 1
+</select>
+```
+
+没有必要使用`@param`参数注解！
+
+
+
+# 多个属性
 
 ## 使用索引
 
@@ -33,8 +59,9 @@ XML如下：
 
 ```xml
 <select id="selectByUserIdAndStatus" resultType="cn.cb.demo.domain.UserInfo">
-    select * from user_info 
-    where user_id=#{param1} and status=#{param2}
+    SELECT * FROM user_info  
+    WHERE user_id = #{param1} 
+    AND status = #{param2}
 </select>
 ```
 
@@ -42,7 +69,7 @@ XML如下：
 
 ## 使用@Param
 
-`@Param`这个注解用于指定key，一旦指定了key，在SQL中即可对应的key入参。即，使用`@Param`注解显式地告诉 Mybatis 参数的名字，这样在xml中就可以按照参数名去引用了。
+`@Param`（org.apache.ibatis.annotations.Param）这个注解用于指定key，一旦指定了key，在SQL中即可对应的key入参。即，使用`@Param`注解显式地告诉 Mybatis 参数的名字，这样在xml中就可以按照参数名去引用了。
 
 Mapper方法如下：
 
@@ -54,8 +81,9 @@ XML如下：
 
 ```xml
 <select id="selectByUserIdAndStatus" resultType="cn.cb.demo.domain.UserInfo">
-    select * from user_info 
-    where user_id=#{userId} and status=#{status}
+    SELECT * FROM user_info 
+    WHERE user_id = #{userId} 
+    AND status = #{status}
 </select>
 ```
 
@@ -75,8 +103,9 @@ XML如下：
 
 ```xml
 <select id="selectByUserIdAndStatusMap" resultType="cn.cb.demo.domain.UserInfo">
-    select * from user_info 
-    where user_id=#{userId} and status=#{status}
+    SELECT * FROM user_info  
+    WHERRE user_id = #{userId} 
+    AND status = #{status}
 </select>
 ```
 
@@ -90,12 +119,13 @@ Mapper方法如下：
 UserInfo selectByEntity(UserInfoReq userInfoReq);
 ```
 
-XML如下（参数的引用直接使用bean的字段）：
+XML如下（参数的引用直接使用JavaBean的字段）：
 
 ```xml
 <select id="selectByEntity" resultType="cn.cb.demo.domain.UserInfo">
-    select * from user_info 
-    where user_id=#{userId} and status=#{status}
+    SELECT * FROM user_info 
+    WHERE user_id = #{userId} 
+    AND status = #{status}
 </select>
 ```
 
@@ -108,6 +138,166 @@ public class UserInfoReq {
     private Integer status;
 }
 ```
+
+
+
+# 单个实体类
+
+## 使用@param参数注解
+
+实体类如下：
+
+```java
+@Data
+public class UserInfoReq {
+    private String userId;
+    private Integer status;
+}
+```
+
+Mapper方法如下：
+
+```java
+UserInfo selectByEntity(@Param("userInfoReq") UserInfoReq userInfoReq);
+```
+
+XML如下（参数的引用直接使用JavaBean的字段）：
+
+```xml
+<select id="selectByEntity" resultType="cn.cb.demo.domain.UserInfo">
+    SELECT * FROM user_info 
+    WHERE user_id = #{userInfoReq.userId} 
+    AND status = #{userInfoReq.status}
+</select>
+```
+
+
+
+## 不使用@param参数注解
+
+实体类如下：
+
+```java
+@Data
+public class UserInfoReq {
+    private String userId;
+    private Integer status;
+}
+```
+
+Mapper方法如下：
+
+```java
+UserInfo selectByEntity(UserInfoReq userInfoReq);
+```
+
+XML如下（参数的引用直接使用JavaBean的字段）：
+
+```xml
+<select id="selectByEntity" resultType="cn.cb.demo.domain.UserInfo">
+    SELECT * FROM user_info 
+    WHERE user_id = #{userId} 
+    AND status = #{status}
+</select>
+```
+
+注意：单个实体类作为参数，不使用@param参数注解时，==不能使用==`#{param1.userId}`
+
+```xml
+<select id="selectByUserIdAndStatus" resultType="cn.cb.demo.domain.UserInfo">
+    SELECT * FROM user_info  
+    WHERE user_id = #{param1.userId} 
+    AND status = #{param1.status}
+</select>
+```
+
+
+
+# 单个实体类 + 多个单独参数
+
+controller：
+
+```java
+// 前端以【参数的形式：userId=，sex=，age=】传递User属性和age
+@GetMapping("/getUserInfo")
+public User getUserInfo(User user, Integer age) {
+    userService.getUserInfo(user, age);
+}
+```
+
+dao：
+
+```java
+User getUserInfo(@Param("userInfo") User user, @Param("age") Integer age);
+```
+
+xml：
+
+```xml
+<!--查询-->
+<select id="getUserInfo" resultType="com.demo.elegant.pojo.User">
+    SELECT userId FROM users
+    WHERE 
+        userId = #{userInfo.userId} 
+    AND sex = #{userInfo.sex} 
+    AND age = #{age};
+</select>
+```
+
+注意：`userInfo.userId`
+
+如果参数为<font color=red>多个实体bean，则用各自的参数value值名字区分</font>。
+
+
+
+# 多个实体类
+
+## 使用@Param
+
+dao：
+
+```java
+List<Items> selectItembyparam(@Param("items") Items items, @Param("user") Users user);
+```
+
+xml：
+
+```xml
+<select id="selectItembyparam3" resultMap="BaseResultMap">
+   SELECT *
+   FROM  todo_items
+   WHERE user_id = #{user.userId}
+   AND   priority = #{items.priority}
+ </select>
+```
+
+注意：
+
+- 当使用@param注解JavaBean对象时，@Param注解==括号内==的参数为==形参==，xml内的查询字段应该是==形参.bean属性==！
+- xml中`user`对应于`@Param("user")`中`user`！
+
+
+
+## 不使用@Param
+
+dao：
+
+```ja
+List<Items> selectItembyparam(Items items, Users user);
+```
+
+xml：
+
+```xml
+<select id="selectItembyparam" resultMap="BaseResultMap">
+        SELECT *
+        FROM  todo_items
+        WHERE priority = #{param1.priority}
+        AND   user_id = #{param2.userId}
+ </select>
+```
+
+
 
 # List 传参
 
@@ -155,7 +345,7 @@ XML如下：
 
 # 参数类型为对象中包含集合
 
-## Java Bean
+JavaBean：
 
 ```java
 @Data
@@ -172,7 +362,7 @@ public class Department {
 }
 ```
 
-## controller
+controller：
 
 ```java
 @PostMapping("findByDepartment")
@@ -183,98 +373,28 @@ public ResultMsg findByDepartment(@RequestBody Department department)
 }
 ```
 
-## dao
+dao：
 
 ```java
 List <Employee> findByDepartment(@Param("department") Department department);
 ```
 
-## xml
+xml：
 
 注意：`department.id`、`department.employees`
 
 ```xml
 <select id="findByDepartment" resultMap="BaseResultMap" parameterType="com.example.demo.po.Department">
-    SELECT * from employee 
-    where dept_id =#{department.id} 
-    and age in
+    SELECT * FROM employee 
+    WHERE dept_id = #{department.id} 
+    AND age IN
     <foreach collection="department.employees" open="(" separator="," close=")" item="employee">
         #{employee.age}
     </foreach>
 </select>
 ```
 
-# 单个实体类 + 多个单独参数
 
-## dao
-
-```java
-User getUserInfo(@Param("userInfo") User user, @Param("age") Integer age);
-```
-
-## xml
-
-```xml
-<!--查询-->
-<select id="getUserInfo" resultType="com.demo.elegant.pojo.User">
-    select userId
-    from users
-    where 
-        userId=#{userInfo.userId} and sex=#{userInfo.sex} 
-        and age=#{age};
-</select>
-```
-
-注意：`userInfo.userId`
-
-如果参数为<font color=red>多个实体bean，则用各自的参数value值名字区分</font>。
-
-# 多个实体类
-
-## 使用@Param
-
-### dao
-
-```java
-List<Items> selectItembyparam(@Param("items") Items items, @Param("user") Users user);
-```
-
-### xml
-
-```xml
-<select id="selectItembyparam3" resultMap="BaseResultMap">
-   SELECT *
-   FROM  todo_items
-   WHERE user_id = #{user.userId}
-   AND   priority = #{items.priority}
- </select>
-```
-
-注意：
-
-- 当使用@param注解JavaBean对象时，@Param注解==括号内==的参数为==形参==，xml内的查询字段应该是==形参.bean属性==！
-- xml中`user`对应于`@Param("user")`中`user`！
-
-
-
-## 不使用@Param
-
-### dao
-
-```ja
-List<Items> selectItembyparam(Items items, Users user);
-```
-
-### xml
-
-```xml
-<select id="selectItembyparam" resultMap="BaseResultMap">
-        SELECT *
-        FROM  todo_items
-        WHERE priority = #{param1.priority}
-        AND   user_id = #{param2.userId}
- </select>
-```
 
 # useActualParamName
 
@@ -298,4 +418,5 @@ mybatis.configuration.use-actual-param-name=true
 
 [4] [MyBatis-@param注解详解](https://blog.csdn.net/xuonline4196/article/details/87994394)（重要）
 
-https://www.cnblogs.com/libin6505/p/10036765.html
+[5] [关于Mybatis的@Param注解](https://www.cnblogs.com/libin6505/p/10036765.html)
+

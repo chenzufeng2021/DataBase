@@ -511,7 +511,7 @@ public class CommonConstants{
 
 `<select>`标签中的`resultMap`同样可以这么引用！
 
-# 批量处理<sup><a href="ref5">[5]</a></sup>
+# 批量处理<sup><a href="#ref5">[5]</a></sup>
 
 ## 批量查询
 
